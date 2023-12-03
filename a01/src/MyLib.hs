@@ -1,9 +1,38 @@
 module MyLib (extract) where
 
+import Control.Monad
 import Data.Char
+import Data.List
+import Data.Maybe
 
 extract :: String -> Int
 extract str =
-  read [head digits, last digits]
+    10 * a + b
   where
-    digits = filter isDigit str
+    a = head digits
+    b = last digits
+    digits = stringToDigits str
+
+stringToDigits str =
+  mapMaybe digitAtHead $ takeWhile (not . null) $ iterate tail str
+
+digitAtHead :: String -> Maybe Int
+digitAtHead str =
+  digit `mplus` digitString
+  where
+    digit = if isDigit chr then Just $ digitToInt chr else Nothing
+    chr = head str
+    digitString = findIndex (`isPrefixOf` str) digitStrings
+    digitStrings =
+      [ "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine"
+      ]
+
