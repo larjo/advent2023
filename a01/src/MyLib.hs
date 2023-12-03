@@ -7,7 +7,7 @@ import Data.Maybe
 
 extract :: String -> Int
 extract str =
-    10 * a + b
+  10 * a + b
   where
     a = head digits
     b = last digits
@@ -18,11 +18,16 @@ stringToDigits str =
 
 digitAtHead :: String -> Maybe Int
 digitAtHead str =
-  digit `mplus` digitString
+  digit str `mplus` digitString str
+
+digit str =
+  if isDigit chr then Just $ digitToInt chr else Nothing
   where
-    digit = if isDigit chr then Just $ digitToInt chr else Nothing
     chr = head str
-    digitString = findIndex (`isPrefixOf` str) digitStrings
+
+digitString str =
+  findIndex (`isPrefixOf` str) digitStrings
+  where
     digitStrings =
       [ "zero",
         "one",
@@ -35,4 +40,3 @@ digitAtHead str =
         "eight",
         "nine"
       ]
-
