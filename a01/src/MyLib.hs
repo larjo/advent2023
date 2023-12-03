@@ -21,7 +21,9 @@ digitAtHead str =
   digit str `mplus` digitString str
 
 digit str =
-  if isDigit chr then Just $ digitToInt chr else Nothing
+  if isDigit chr
+    then Just $ digitToInt chr
+    else Nothing
   where
     chr = head str
 
