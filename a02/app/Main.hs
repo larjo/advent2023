@@ -1,8 +1,14 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import Control.Monad
+import Data.Void
+import Text.Megaparsec hiding (State, count)
+import Data.Text (Text, pack)
+
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer qualified as L
+import Text.Megaparsec.Debug
+import MyLib (run)
 
 main :: IO ()
-main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+main = run

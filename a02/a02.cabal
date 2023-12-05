@@ -93,6 +93,8 @@ executable a02
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.17.2.0,
+        megaparsec,
+        text,
         a02
 
     -- Directories containing source files.
