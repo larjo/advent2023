@@ -90,11 +90,10 @@ maxByColor b1 b2 c =
     cnt = max b1c b2c
 
 maxGame :: [Ball] -> [Ball] -> [Ball]
-maxGame b1 b2 =
-    map (maxByColor b1 b2) colors
+maxGame b1 b2 = map (maxByColor b1 b2) colors
 
 game0 :: [Ball]
-game0 = colors >>= (\c -> [Ball 0 c])
+game0 = map (Ball 0) colors
 
 power :: [Ball] -> Int
 power = product . map count
