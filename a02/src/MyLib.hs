@@ -1,16 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module MyLib (run) where
+module MyLib (part1, part2) where
 
-import Control.Monad
-import Data.Data (isAlgType)
 import Data.Text (Text, pack)
+import Data.Maybe (fromMaybe)
+import Data.List.Extra (firstJust)
 import Data.Void
 import Text.Megaparsec hiding (State, count)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer qualified as L
-import Text.Megaparsec.Debug
 
 type Parser = Parsec Void Text
 
@@ -19,6 +18,9 @@ data BallColor
   | Blue
   | Green
   deriving (Eq, Show)
+
+colors :: [BallColor]
+colors = [Red, Green, Blue]
 
 data Ball = Ball
   { count :: Int,
@@ -63,10 +65,9 @@ pGame = do
 pGames :: Parser [Game]
 pGames = endBy pGame eol
 
-
 isBallAllowed :: [Ball] -> Ball -> Bool
 isBallAllowed bag ball =
-  any (\b -> color ball == color b && count ball <= count b) bag  
+  any (\b -> color ball == color b && count ball <= count b) bag
 
 isBallsAllowed :: [Ball] -> [Ball] -> Bool
 isBallsAllowed bag = all (isBallAllowed bag)
@@ -80,12 +81,40 @@ allowedGames = filter (isGameAllowed bag)
     -- 12 red cubes, 13 green cubes, and 14 blue cubes
     bag = [Ball 12 Red, Ball 13 Green, Ball 14 Blue]
 
-run :: IO ()
-run =
+maxByColor :: [Ball] -> [Ball] -> BallColor -> Ball
+maxByColor b1 b2 c =
+  Ball cnt c
+  where
+    b1c = fromMaybe 0 $ firstJust (\b -> if color b == c then Just $ count b else Nothing) b1
+    b2c = fromMaybe 0 $ firstJust (\b -> if color b == c then Just $ count b else Nothing) b2
+    cnt = max b1c b2c
+
+maxGame :: [Ball] -> [Ball] -> [Ball]
+maxGame b1 b2 =
+    map (maxByColor b1 b2) colors
+
+game0 :: [Ball]
+game0 = colors >>= (\c -> [Ball 0 c])
+
+power :: [Ball] -> Int
+power = product . map count
+
+part1 :: IO ()
+part1 =
   do
     text <- readFile "assets/input.txt"
     let parsed = parse pGames "" (pack text)
     case parsed of
       Left err -> putStrLn $ errorBundlePretty err
       Right games ->
-        putStrLn $ show . sum . map number $ allowedGames games
+        print $ sum . map number $ allowedGames games
+
+part2 :: IO ()
+part2 =
+  do
+    text <- readFile "assets/input.txt"
+    let parsed = parse pGames "" (pack text)
+    case parsed of
+      Left err -> putStrLn $ errorBundlePretty err
+      Right games ->
+        print $ sum . map (power . foldr maxGame game0 . turn) $ games
