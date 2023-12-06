@@ -3,9 +3,8 @@
 
 module MyLib (part1, part2) where
 
+import Data.List.Extra (sumOn')
 import Data.Text (Text, pack)
-import Data.Maybe (fromMaybe)
-import Data.List.Extra (firstJust)
 import Data.Void
 import Text.Megaparsec hiding (State, count)
 import Text.Megaparsec.Char
@@ -76,18 +75,19 @@ isGameAllowed :: [Ball] -> Game -> Bool
 isGameAllowed bag game = all (isBallsAllowed bag) $ turn game
 
 allowedGames :: [Game] -> [Game]
-allowedGames = filter (isGameAllowed bag)
+allowedGames =
+  filter (isGameAllowed bag)
   where
-    -- 12 red cubes, 13 green cubes, and 14 blue cubes
     bag = [Ball 12 Red, Ball 13 Green, Ball 14 Blue]
 
+countByColor :: BallColor -> [Ball] -> Int
+countByColor ballcolor = sumOn' (\b -> if color b == ballcolor then count b else 0)
+
 maxByColor :: [Ball] -> [Ball] -> BallColor -> Ball
-maxByColor b1 b2 c =
-  Ball cnt c
+maxByColor b1 b2 ballcolor =
+  Ball maxCount ballcolor
   where
-    b1c = fromMaybe 0 $ firstJust (\b -> if color b == c then Just $ count b else Nothing) b1
-    b2c = fromMaybe 0 $ firstJust (\b -> if color b == c then Just $ count b else Nothing) b2
-    cnt = max b1c b2c
+    maxCount = max (countByColor ballcolor b1) (countByColor ballcolor b2)
 
 maxGame :: [Ball] -> [Ball] -> [Ball]
 maxGame b1 b2 = map (maxByColor b1 b2) colors
