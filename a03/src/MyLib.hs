@@ -1,8 +1,7 @@
-module MyLib (part1) where
+module MyLib (part1, test) where
 
 import Data.Char (digitToInt, isDigit)
 import Data.List (singleton, tails, transpose)
-import Data.Functor ((<&>))
 
 testInput :: [String]
 testInput =
@@ -35,9 +34,6 @@ mergeSymbols :: [String] -> [Bool]
 mergeSymbols = map (any isSym) . transpose
   where
     isSym c = not (isDigit c || c == '.')
-
-makeDigits :: String -> String
-makeDigits = map (\c -> if isDigit c then c else '.')
 
 spread :: [Bool] -> [Bool]
 spread row =
@@ -87,10 +83,9 @@ test = do
   mapM_ print extracted
   print $ sum . map sum $ extracted
 
-part1 :: IO ()
-part1 = do
-  rows <- readFile "assets/input.txt" <&> lines
-  print . run $ padSides rows
+part1 :: [String] -> Int
+part1 rows =
+  run $ padSides rows
   where
     run paddedSides =
       sum (map (sum . extractNumbers) zipped)
