@@ -3,19 +3,18 @@ module Main where
 import Data.Char (digitToInt, isDigit)
 import Data.List (singleton, tails, transpose)
 
-input :: [String]
-input =
-  [ "467..114.2",
-    "...*......",
+testInput :: [String]
+testInput =
+  [ "^67..114.1",
+    "1...*.....",
     "..35..633.",
-    "......#...",
-    "617*......",
-    ".....+.58.",
-    "..592.....",
-    "......7550",
+    "..........",
+    ".17.......",
+    "$......58.",
+    "7.592.....",
+    "......755.",
     "...$.*....",
-    ".555...777",
-    ".664.598.."
+    ".664.598.3"
   ]
 
 pad :: [String] -> [String]
@@ -63,15 +62,15 @@ extractNumbers =
             let nextNumber = 10 * current + digitToInt chr in
             ((nextWasTouched, nextNumber), numbers)
           else
-            if current > 0 && nextWasTouched
+            if current > 0 && wasTouched
               then ((False, 0), current : numbers)
               else ((False, 0), numbers)
       )
       ((False, 0), [])
 
-main :: IO ()
-main = do
-  let paddedSides = padSides input
+test :: IO ()
+test = do
+  let paddedSides = padSides testInput
   let str = window 3 $ pad paddedSides
   let merged = map mergeSymbols str
   putStrLn "merged"
@@ -85,3 +84,16 @@ main = do
   let extracted = map extractNumbers combined
   putStrLn "extracted"
   mapM_ print extracted
+  print $ sum . map sum $ extracted
+
+main :: IO ()
+main = do
+  text <- readFile "assets/input.txt"
+  let paddedSides = padSides (lines text)
+  let str = window 3 $ pad paddedSides
+  let merged = map mergeSymbols str
+  let spr = map spread merged
+  let combined = zipWith mergeDigits spr paddedSides
+  let extracted = map extractNumbers combined
+  let res = sum . map sum $ extracted
+  print res
