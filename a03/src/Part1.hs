@@ -1,4 +1,4 @@
-module MyLib (part1, test) where
+module Part1 (run, test) where
 
 import Data.Char (digitToInt, isDigit)
 import Data.List (singleton, tails, transpose)
@@ -83,12 +83,10 @@ test = do
   mapM_ print extracted
   print $ sum . map sum $ extracted
 
-part1 :: [String] -> Int
-part1 rows =
-  run $ padSides rows
+run :: [String] -> Int
+run rows =
+  sum (map (sum . extractNumbers) zipped)
   where
-    run paddedSides =
-      sum (map (sum . extractNumbers) zipped)
-      where
-        zipped = zipWith mergeDigits str paddedSides
-        str = map (spread . mergeSymbols) (window 3 $ pad paddedSides)
+    paddedSides = padSides rows
+    symbols = map (spread . mergeSymbols) (window 3 $ pad paddedSides)
+    zipped = zipWith mergeDigits symbols paddedSides

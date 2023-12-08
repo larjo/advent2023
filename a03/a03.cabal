@@ -17,7 +17,7 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  MyLib
+    exposed-modules:  Part1
     -- other-modules:
     -- other-extensions:
     build-depends:    base ^>=4.17.2.0
