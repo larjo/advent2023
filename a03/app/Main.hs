@@ -2,6 +2,7 @@ module Main where
 
 import Data.Char (digitToInt, isDigit)
 import Data.List (singleton, tails, transpose)
+import Data.Functor ((<&>))
 
 testInput :: [String]
 testInput =
@@ -22,7 +23,7 @@ pad lst@(hd : _) =
   dots ++ lst ++ dots
   where
     dots = [map (const '.') hd]
-pad _ = []
+pad [] = []
 
 padSides :: [String] -> [String]
 padSides = transpose . pad . transpose
@@ -88,12 +89,11 @@ test = do
 
 main :: IO ()
 main = do
-  text <- readFile "assets/input.txt"
-  let paddedSides = padSides (lines text)
-  let str = window 3 $ pad paddedSides
-  let merged = map mergeSymbols str
-  let spr = map spread merged
-  let combined = zipWith mergeDigits spr paddedSides
-  let extracted = map extractNumbers combined
-  let res = sum . map sum $ extracted
-  print res
+  rows <- readFile "assets/input.txt" <&> lines
+  print . run $ padSides rows
+  where
+    run paddedSides =
+      sum (map (sum . extractNumbers) zipped)
+      where
+        zipped = zipWith mergeDigits str paddedSides
+        str = map (spread . mergeSymbols) (window 3 $ pad paddedSides)
