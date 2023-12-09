@@ -4,12 +4,12 @@ module Part2 (run, test2) where
 
 import Data.Char (digitToInt, isDigit)
 import Data.List (singleton, tails, transpose)
+import Data.Maybe (catMaybes, mapMaybe)
 import Data.Text (Text, pack)
 import Data.Void
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer qualified as L
-import Data.Maybe (mapMaybe, catMaybes)
 
 testInput :: ([String], Int)
 testInput =
@@ -55,14 +55,13 @@ parseLine str =
     unpack (Right []) = Nothing
     unpack (Right val) = Just val
 
-test2 :: [[(Int, Int, Text)]]
+test2 :: [(Int, Int, Text)]
 test2 = do
-  catMaybes $ zipWith mergeIndex [0..] (fst testInput)
+  concat . catMaybes $ zipWith mergeIndex [0 ..] (fst testInput)
   where
-    mergePosition i (StringNumber offset value) = (i ,offset, value)
+    mergePosition i (StringNumber offset value) = (i, offset, value)
     mergeIndex :: Int -> String -> Maybe [(Int, Int, Text)]
-    mergeIndex i row =
-      map (mergePosition i) <$> parseLine row
+    mergeIndex i row = map (mergePosition i) <$> parseLine row
 
 run :: [String] -> Int
 run input = 123
