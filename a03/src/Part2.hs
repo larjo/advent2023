@@ -1,17 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Part2 (run, test2) where
+module Part2 (run) where
 
+import Data.List.Extra (sumOn', productOn')
 import Data.Char (digitToInt, isDigit)
 import Data.List (singleton, tails, transpose)
 import Data.Maybe (catMaybes, mapMaybe)
-import Data.Text (Text, pack)
+import Data.Text (Text)
+import Data.Text qualified as T (length, pack, unpack)
+import Data.Text.Read (decimal)
 import Data.Void
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer qualified as L
 
-testInput :: ([String], Int)
+testInput :: [String]
 testInput =
   ( [ "467..114..",
       "...*......",
@@ -23,8 +26,7 @@ testInput =
       "......755.",
       "...$.*....",
       ".664.598.."
-    ],
-    4361
+    ]
   )
 
 type Parser = Parsec Void Text
@@ -49,19 +51,53 @@ pNumbers = do
 
 parseLine :: String -> Maybe [StringNumber]
 parseLine str =
-  unpack $ parse pNumbers "" $ pack str
+  unpack $ parse pNumbers "" $ T.pack str
   where
     unpack (Left _) = Nothing
     unpack (Right []) = Nothing
     unpack (Right val) = Just val
 
-test2 :: [(Int, Int, Text)]
-test2 = do
-  concat . catMaybes $ zipWith mergeIndex [0 ..] (fst testInput)
+numberPositions :: [String] -> [(Int, Int, Text)]
+numberPositions = do
+  concat . catMaybes . zipWith mergeIndex [0 ..]
   where
     mergePosition i (StringNumber offset value) = (i, offset, value)
-    mergeIndex :: Int -> String -> Maybe [(Int, Int, Text)]
     mergeIndex i row = map (mergePosition i) <$> parseLine row
 
+starPositions :: [String] -> [(Int, Int)]
+starPositions rows =
+  [ (i, j) | (i, row) <- zip [0 ..] rows, (j, chr) <- zip [0 ..] row, chr == '*'
+  ]
+
+adjacent :: (Int, Int) -> [(Int, Int)]
+adjacent (i, j) =
+  [ (i', j') | i' <- [i - 1 .. i + 1], j' <- [j - 1 .. j + 1], (i', j') /= (i, j)
+  ]
+
+digitPositions :: (Int, Int, Text) -> [(Int, Int)]
+digitPositions (row, col, number) =
+  [(row, col + i) | i <- [0 .. T.length number - 1]]
+
+isTouched :: [(Int, Int)] -> [(Int, Int)] -> Bool
+isTouched positions = any (`elem` positions)
+
+starNumbers :: [(Int, Int, Text)] -> (Int, Int) -> [Text]
+starNumbers numbers star =
+  mapMaybe
+    ( \np@(_r, _c, number) ->
+        if isTouched (digitPositions np) $ adjacent star
+          then Just number
+          else Nothing
+    )
+    numbers
+
+textToInt :: Text -> Int
+textToInt = read . T.unpack
+
 run :: [String] -> Int
-run input = 123
+run input =
+  sumOn' (productOn' textToInt) pairs
+  where
+    stars = starPositions input
+    numbers = numberPositions input
+    pairs = filter ((==) 2 . length) $ map (starNumbers numbers) stars
