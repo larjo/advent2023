@@ -2,32 +2,13 @@
 
 module Part2 (run) where
 
-import Data.List.Extra (sumOn', productOn')
-import Data.Char (digitToInt, isDigit)
-import Data.List (singleton, tails, transpose)
+import Data.Char (isDigit)
+import Data.List.Extra (productOn', sumOn')
 import Data.Maybe (catMaybes, mapMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T (length, pack, unpack)
-import Data.Text.Read (decimal)
 import Data.Void
 import Text.Megaparsec hiding (State)
-import Text.Megaparsec.Char
-import Text.Megaparsec.Char.Lexer qualified as L
-
-testInput :: [String]
-testInput =
-  ( [ "467..114..",
-      "...*......",
-      "..35..633.",
-      "......#...",
-      "617*......",
-      ".....+.58.",
-      "..592.....",
-      "......755.",
-      "...$.*....",
-      ".664.598.."
-    ]
-  )
 
 type Parser = Parsec Void Text
 

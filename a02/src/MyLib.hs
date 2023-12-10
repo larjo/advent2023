@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module MyLib (part1, part2) where
 
@@ -46,8 +45,7 @@ pBall = do
   _ <- spaceChar
   count <- L.decimal
   _ <- spaceChar
-  color <- pBallColor
-  return (Ball count color)
+  Ball count <$> pBallColor
 
 pBalls :: Parser [Ball]
 pBalls = sepBy pBall (char ',')
