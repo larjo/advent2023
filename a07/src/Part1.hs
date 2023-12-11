@@ -6,12 +6,6 @@ import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe)
 import Data.Ord (Down (Down))
 
-rankCard :: String -> [Int]
-rankCard =
-  map (fromMaybe (-1) . flip elemIndex ranking)
-  where
-    ranking = "23456789TJQKA"
-
 testInput :: [String]
 testInput =
   [ "32T3K 765",
@@ -37,6 +31,12 @@ splitInput = split . splitOn " "
   where
     split [hand, bet] = (hand, read bet)
     split _ = ("", 0)
+
+rankCard :: String -> [Int]
+rankCard =
+  map (fromMaybe (-1) . flip elemIndex ranking)
+  where
+    ranking = "23456789TJQKA"
 
 rank :: String -> [Int]
 rank =
