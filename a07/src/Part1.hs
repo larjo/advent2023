@@ -1,6 +1,6 @@
 module Part1 (run) where
 
-import Data.List (elemIndex, group, sort)
+import Data.List ( elemIndex, group, sort)
 import Data.List.Extra (sortOn)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe)
@@ -38,8 +38,8 @@ rankCard =
   where
     ranking = "23456789TJQKA"
 
-rank :: String -> [Int]
-rank =
+rankHand :: String -> [Int]
+rankHand =
   streak . prevEq . sort
   where
     prevEq str = zipWith (\curr prev -> if curr == prev then 1 else 0) str (tail str)
@@ -49,4 +49,4 @@ run :: [String] -> Int
 run input =
   sum . sortByRank $ map splitInput input
   where
-    sortByRank hands = zipWith (\i (_, bet) -> i * bet) [1 ..] $ sortOn (rank . fst) . sortOn (rankCard . fst) $ hands
+    sortByRank hands = zipWith (\i (_, bet) -> i * bet) [1 ..] $ sortOn (rankHand . fst) . sortOn (rankCard . fst) $ hands
