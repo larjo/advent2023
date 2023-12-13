@@ -26,7 +26,6 @@ run :: [String] -> Int
 run input =
   sum . sortByRank $ map splitInput input
   where
-    sortByRank :: [(String, Int)] -> [Int]
-    sortByRank hands = zipWith (\i (_, bet) -> i * bet) [1 ..] $ sortBy (sort1 <> sort2) hands
-    sort1 = compare `on` (rankHand . fst)
-    sort2 = compare `on` (rankCard  . fst)
+    sortByRank hands = zipWith (\i (_, bet) -> i * bet) [1 ..] $ sortBy (compareHands <> compareCards `on` fst) hands
+    compareHands = compare `on` rankHand
+    compareCards = compare `on` rankCard
