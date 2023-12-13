@@ -19,8 +19,7 @@ rankCard = map cardIndex
     cardIndex hand = fromJust $ hand `elemIndex` "23456789TJQKA"
 
 rankHand :: String -> [Int]
-rankHand =
-  sortOn Down . filter (/= 1) . map length . group . sort
+rankHand = sortOn Down . filter (/= 1) . map length . group . sort
 
 run :: [String] -> Int
 run input =
