@@ -1,21 +1,19 @@
 module Part1 (run) where
 
-import Data.List ( elemIndex, group, sort, sortBy)
+import Data.Function (on)
+import Data.List (elemIndex, group, sort, sortBy)
 import Data.List.Extra (sortOn)
 import Data.Maybe (fromJust)
 import Data.Ord (Down (Down))
-import Data.Function (on)
 
 rankCard :: String -> [Int]
-rankCard = map cardIndex
-  where
-    cardIndex hand = fromJust $ hand `elemIndex` "23456789TJQKA"
+rankCard = map (fromJust . flip elemIndex "23456789TJQKA")
 
 rankHand :: String -> [Int]
-rankHand = sortOn Down . filter (/= 1) . map length . group . sort
+rankHand = sortOn Down . map length . group . sort
 
 run :: [(String, Int)] -> Int
-run = sum . zipWith (\i (_, bet) -> i * bet) [1 ..] . sortBy (compareHands <> compareCards `on` fst)
+run = sum . zipWith (*) [1 ..] . map snd . sortBy (compareHands <> compareCards `on` fst)
   where
     compareHands = compare `on` rankHand
     compareCards = compare `on` rankCard
