@@ -46,10 +46,47 @@ testInput3 =
     "..........."
   ]
 
+testCleanedL = ".JLJL7F||J----F7F7F7F7F7F7FJ----L.............."
+test98 = "F-L7L|77||7JF-L----JF7F7F7F7F7F7F----J||F7LJLJ.F7|L-JL-7FJ|L7|||L7|||FJF7|L-7L7FJL7FJL7|||S|||F-7F-JF-JL7LJLJLJL---7FJ|||||LJF7|F--J7JJ-7L7."
+-- testCleaned = "..............L----JF7F7F7F7F7F7F----J||F7LJLJ.F7|L-JL-7FJ|L7|||L7|||FJF7|L-7L7FJL7FJL7|||S|||F-7F-JF-JL7LJLJLJL---7FJ|||||LJF7|F--J........"
+testCleaned = "|L-7L7FJL7FJL7|||S|||F-7F-JF-JL7LJLJLJL---7FJ|||||LJF7|F--J........"
+spTestCleaned = map split testCleaned
+sp1 = map fst spTestCleaned
+sp2 = map snd spTestCleaned
+countTestCleaned1 = countRow sp1
+countTestCleaned2 = countRow sp2
+
+testInput4 :: [String]
+testInput4 =
+  [ "...........",
+    ".S-------7.",
+    ".|F-----7|.",
+    ".||.....||.",
+    ".||.....||.",
+    ".|L-7.F-J|.",
+    ".|..|.|..|.",
+    ".L--J.L--J.",
+    "..........."
+  ]
+
 -- Upper part/lower part translation
 -- input: | L 7 F J
 -- upper: | |     |
 -- lower: |   | |  
+-- (upper, lower)
+
+split :: Char -> (Char, Char)
+split c =
+  case c of
+    '|' -> ('|', '|')
+    'L' -> ('|', ' ')
+    'J' -> ('|', ' ')
+    '7' -> (' ', '|')
+    'F' -> (' ', '|')
+    'S' -> (' ', '|')
+    '.' -> ('.', '.')
+    '-' -> ('-', '-')
+    _ -> error "Invalid char"
 
 data Position = Position
   { x :: Int,
@@ -149,35 +186,33 @@ cleanedGrid input = do
   let sPos = Position xPos yPos East input
   let [startPos1,startPos2] = startPositions $ Position xPos yPos East input
   let path = takeWhile (not . samePos sPos) $ iterate step startPos1
-  foldr fstep (clearPosition sPos) path
+  let cleaned = foldr fstep (clearPosition sPos) path
+  setCurrentChar (setXY cleaned xPos yPos) 'S'
   where
     fstep pos state =
       setCurrentChar (setXY state (x pos) (y pos)) (getCurrentChar pos)
 
-countInside :: Position -> Int
-countInside (Position {grid}) =
-  sum $ map countRow grid
-  where
-    countRow = snd . foldr countChar (False, 0)
-    countChar c (ins, cnt)
-      | c == '|' = (not ins, cnt)
-      | ins && c == '.' = (ins, cnt + 1)
-      | otherwise = (ins, cnt)
+countChar :: (Bool, Int) -> Char -> (Bool, Int)
+countChar (ins, cnt) c
+    | c == '|' = (not ins, cnt)
+    | ins && c == '.' = (ins, cnt + 1)
+    | otherwise = (ins, cnt)
 
-countInsideList :: Position -> [Int]
-countInsideList (Position {grid}) =
-  map countRow grid
-  where
-    countRow = snd . foldr countChar (False, 0)
-    countChar c (ins, cnt)
-      | c == '|' = (not ins, cnt)
-      | ins && c == '.' = (ins, cnt + 1)
-      | otherwise = (ins, cnt)
+countRow :: [Char] -> Int
+countRow = snd . foldl countChar (False, 0)
 
 task2 :: [String] -> IO ()
 task2 input = do
   let cleaned = cleanedGrid input
-  print $ countInside cleaned
+  let sp = map (map split) $ grid cleaned
+  let sp1 = map (map fst) sp
+  let sp2 = map (map snd) sp
+  let c1 = map countRow sp1
+  let c2 = map countRow sp2
+  print c1
+  print c2
+  print $ sum c1
+  print $ sum c2
 
 main :: IO ()
 main = do
