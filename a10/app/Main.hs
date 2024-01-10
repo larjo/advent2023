@@ -4,7 +4,6 @@ import Control.Arrow
 import Data.Functor ((<&>))
 import Data.List
 import Data.Maybe
-import GHC.Exception (divZeroException)
 import System.Environment (getArgs)
 
 testInput1 :: [String]
@@ -16,6 +15,15 @@ testInput1 =
     "....."
   ]
 
+testInput1b :: [String]
+testInput1b =
+  [ "--.|.",
+    ".S-7|",
+    ".||||",
+    "-L-J|",
+    ".---."
+  ]
+
 testInput2 :: [String]
 testInput2 =
   [ "..F7.",
@@ -24,6 +32,24 @@ testInput2 =
     "|F--J",
     "LJ..."
   ]
+
+testInput3 :: [String]
+testInput3 =
+  [ "...........",
+    ".S-------7.",
+    ".|F-----7|.",
+    ".||.....||.",
+    ".||.....||.",
+    ".|L-7.F-J|.",
+    ".|..|.|..|.",
+    ".L--J.L--J.",
+    "..........."
+  ]
+
+-- Upper part/lower part translation
+-- input: | L 7 F J
+-- upper: | |     |
+-- lower: |   | |  
 
 data Position = Position
   { x :: Int,
@@ -47,6 +73,22 @@ moveTo (Position {grid}) d (x, y) =
 
 getCurrentChar :: Position -> Char
 getCurrentChar (Position {x, y, grid}) = (grid !! y) !! x
+
+setCurrentChar :: Position -> Char -> Position
+setCurrentChar (Position {x, y, d, grid}) c =
+  Position {x, y, d, grid = replace y (replace x c (grid !! y)) grid}
+  where
+    replace i e l = take i l ++ [e] ++ drop (i + 1) l
+
+setXY :: Position -> Int -> Int -> Position
+setXY (Position {d, grid}) x y = Position {x, y, d, grid}
+
+clearPosition :: Position -> Position
+clearPosition (Position {x, y, d, grid}) =
+  Position {x, y, d, grid = clearGrid}
+  where
+    clearGrid =
+        map (\s -> replicate (length s) '.') grid
 
 data Direction
   = North
@@ -100,6 +142,42 @@ task1 input = do
   let [startPos1,startPos2] = startPositions $ Position xPos yPos East input
   let paths = zip (iterate step startPos1) (iterate step startPos2)
   print $ (+ 1) . length . takeWhile not $ map (uncurry samePos . (fst &&& snd)) paths
+
+cleanedGrid :: [String] -> Position
+cleanedGrid input = do
+  let [(xPos, yPos)] = findChar 'S' input
+  let sPos = Position xPos yPos East input
+  let [startPos1,startPos2] = startPositions $ Position xPos yPos East input
+  let path = takeWhile (not . samePos sPos) $ iterate step startPos1
+  foldr fstep (clearPosition sPos) path
+  where
+    fstep pos state =
+      setCurrentChar (setXY state (x pos) (y pos)) (getCurrentChar pos)
+
+countInside :: Position -> Int
+countInside (Position {grid}) =
+  sum $ map countRow grid
+  where
+    countRow = snd . foldr countChar (False, 0)
+    countChar c (ins, cnt)
+      | c == '|' = (not ins, cnt)
+      | ins && c == '.' = (ins, cnt + 1)
+      | otherwise = (ins, cnt)
+
+countInsideList :: Position -> [Int]
+countInsideList (Position {grid}) =
+  map countRow grid
+  where
+    countRow = snd . foldr countChar (False, 0)
+    countChar c (ins, cnt)
+      | c == '|' = (not ins, cnt)
+      | ins && c == '.' = (ins, cnt + 1)
+      | otherwise = (ins, cnt)
+
+task2 :: [String] -> IO ()
+task2 input = do
+  let cleaned = cleanedGrid input
+  print $ countInside cleaned
 
 main :: IO ()
 main = do
