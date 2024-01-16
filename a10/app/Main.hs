@@ -46,16 +46,6 @@ testInput3 =
     "..........."
   ]
 
-testCleanedL = ".JLJL7F||J----F7F7F7F7F7F7FJ----L.............."
-test98 = "F-L7L|77||7JF-L----JF7F7F7F7F7F7F----J||F7LJLJ.F7|L-JL-7FJ|L7|||L7|||FJF7|L-7L7FJL7FJL7|||S|||F-7F-JF-JL7LJLJLJL---7FJ|||||LJF7|F--J7JJ-7L7."
--- testCleaned = "..............L----JF7F7F7F7F7F7F----J||F7LJLJ.F7|L-JL-7FJ|L7|||L7|||FJF7|L-7L7FJL7FJL7|||S|||F-7F-JF-JL7LJLJLJL---7FJ|||||LJF7|F--J........"
-testCleaned = "|L-7L7FJL7FJL7|||S|||F-7F-JF-JL7LJLJLJL---7FJ|||||LJF7|F--J........"
-spTestCleaned = map split testCleaned
-sp1 = map fst spTestCleaned
-sp2 = map snd spTestCleaned
-countTestCleaned1 = countRow sp1
-countTestCleaned2 = countRow sp2
-
 testInput4 :: [String]
 testInput4 =
   [ "...........",
@@ -83,7 +73,6 @@ split c =
     'J' -> ('|', ' ')
     '7' -> (' ', '|')
     'F' -> (' ', '|')
-    'S' -> (' ', '|')
     '.' -> ('.', '.')
     '-' -> ('-', '-')
     _ -> error "Invalid char"
@@ -132,7 +121,18 @@ data Direction
   | East
   | South
   | West
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
+
+sReplace :: Direction -> Direction -> Char
+sReplace d1 d2 =
+  case sort [d1, d2] of
+    [North, East] -> 'L'
+    [North, South] -> '|'
+    [North, West] -> 'J'
+    [East, South] -> 'F'
+    [East, West] -> '-'
+    [South, West] -> '7'
+    _ -> error "Invalid direction"
 
 charToDirection :: Direction -> Char -> Maybe Direction
 charToDirection d c =
@@ -151,7 +151,6 @@ charToDirection d c =
     (West, 'L') -> Just North
     _ -> Nothing
 
--- findChar :: Char -> [String] -> Maybe Position
 findChar :: Char -> [String] -> [(Int, Int)]
 findChar c grid =
   [(x, y) | (y, row) <- zip [0 ..] grid, (x, char) <- zip [0 ..] row, char == c]
@@ -184,10 +183,11 @@ cleanedGrid :: [String] -> Position
 cleanedGrid input = do
   let [(xPos, yPos)] = findChar 'S' input
   let sPos = Position xPos yPos East input
-  let [startPos1,startPos2] = startPositions $ Position xPos yPos East input
+  let [startPos1, startPos2] = startPositions sPos
   let path = takeWhile (not . samePos sPos) $ iterate step startPos1
   let cleaned = foldr fstep (clearPosition sPos) path
-  setCurrentChar (setXY cleaned xPos yPos) 'S'
+  let sReplacement = sReplace (d startPos1) (d startPos2)
+  setCurrentChar (setXY cleaned xPos yPos) sReplacement
   where
     fstep pos state =
       setCurrentChar (setXY state (x pos) (y pos)) (getCurrentChar pos)
@@ -209,8 +209,6 @@ task2 input = do
   let sp2 = map (map snd) sp
   let c1 = map countRow sp1
   let c2 = map countRow sp2
-  print c1
-  print c2
   print $ sum c1
   print $ sum c2
 
@@ -225,3 +223,4 @@ main = do
           ["3"] -> fullInput
           _ -> error "Invalid argument"
   task1 input
+  task2 input
