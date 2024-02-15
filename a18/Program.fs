@@ -149,3 +149,4 @@ do
     let filled = field.Arr |> array2DtoRows |> fillRowsSeq
     filled |> Seq.iter printRowSeq
     printfn "%i" (countHoles filled)
+// 42556 is to high
