@@ -64,6 +64,7 @@ module Field =
             for j = 0 to Array2D.length2 field.Arr - 1 do
                 printf "%s" (boolToSymbol field.Arr[i, j])
             printfn ""
+        printfn ""
 
 let digTrench (field : Field) (instruction : Instruction) =
     for _ in 1 .. instruction.Distance do
@@ -124,26 +125,26 @@ let fillRowsSeq (rows : bool seq seq) =
     rows
     |> Seq.map (fillRowSeq >> Seq.map State.toBool)
 
+let countHoles (rows : bool seq seq) =
+    rows
+    |> Seq.sumBy (Seq.sumBy boolToInt)
+
 let printRowSeq (row : seq<bool>) =
     row
     |> Seq.map boolToSymbol
-    |> String.concat " "
+    |> String.concat ""
     |> printfn "%s"
+
 do
     fillRowSeq [false; true; false; false; true; false; false ]
     |> Seq.map (State.toBool >> boolToSymbol) 
     |> String.concat " " 
     |> printfn "%s"
 
-let countHoles (rows : bool seq seq) =
-    rows
-    |> Seq.sumBy (Seq.sumBy boolToInt)
-
 do
     let field1 = Field.create (0, 0, 1000, 1000)
     let instructions = readInput "assets/example.txt" |> Seq.toArray
     let bounds = getBounds field1 instructions
-    printfn "%A" bounds
     let field = Field.create bounds
     instructions |> Seq.iter (digTrench field)
     Field.print field
