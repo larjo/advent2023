@@ -12,6 +12,8 @@ type Instruction = {
     Distance: int
 }
 
+let boolToSymbol (b : bool) = if b then "#" else "."
+
 let readInput (filePath : string) = 
     File.ReadAllLines(filePath)
     |> Seq.map (fun (line: string) -> line.Split(' '))
@@ -33,11 +35,11 @@ type Field = {
     Arr: bool array2d
 }
 module Field =
-    let create width height =
+    let create (minX, minY, maxX, maxY) =
         { 
-            X = width / 2
-            Y = height / 2
-            Arr = Array2D.zeroCreate height width
+            X = -minX
+            Y = -minY
+            Arr = Array2D.zeroCreate (maxX - minX + 1) (maxY - minY + 1)
         }
     let goTo x y (field : Field) =
         field.X <- x
@@ -51,22 +53,34 @@ module Field =
     
     let digHole (field : Field) =
         try
-            field.Arr[field.Y, field.X] <- true
+            field.Arr[field.X, field.Y] <- true
         with
         | :? IndexOutOfRangeException ->
-            printfn $"Out of bounds {field.Y} {field.X}"
+            printfn $"Out of bounds {field.X} {field.Y}"
             reraise()
 
     let print (field : Field) =
         for i = 0 to Array2D.length1 field.Arr - 1 do
             for j = 0 to Array2D.length2 field.Arr - 1 do
-                printf "%s" (if field.Arr[i, j] then "#" else ".")
+                printf "%s" (boolToSymbol field.Arr[i, j])
             printfn ""
 
 let digTrench (field : Field) (instruction : Instruction) =
     for _ in 1 .. instruction.Distance do
         do field |> Field.digHole
         do field |> Field.move instruction.Direction
+
+let getBounds (field : Field) (instructions : Instruction seq) =
+    let bounds =
+        seq {
+            for instruction in instructions do
+                for _ in 1 .. instruction.Distance do
+                    do field |> Field.move instruction.Direction
+                    yield (field.X, field.Y)
+        } |> Seq.fold (fun (minX, minY, maxX, maxY) (x, y) -> 
+                (min minX x, min minY y, max maxX x, max maxY y)) (0, 0, 0, 0)
+    field |> Field.goTo 0 0
+    bounds
 let boolToInt (b : bool) = if b then 1 else 0
 
 let array2DtoRows (arr : bool array2d) =
@@ -112,39 +126,26 @@ let fillRowsSeq (rows : bool seq seq) =
 
 let printRowSeq (row : seq<bool>) =
     row
-    |> Seq.map (fun b -> if b then "#" else ".")
+    |> Seq.map boolToSymbol
     |> String.concat " "
     |> printfn "%s"
 do
     fillRowSeq [false; true; false; false; true; false; false ]
-    |> Seq.map (State.toBool >> boolToInt >> string) 
+    |> Seq.map (State.toBool >> boolToSymbol) 
     |> String.concat " " 
     |> printfn "%s"
-
-let fillRow (field : Field) =
-    let mutable inside = false
-    for x = 0 to Array2D.length2 field.Arr - 1 do
-        if field.Arr[field.Y, x] then
-            if inside then
-                inside <- false
-            else
-                inside <- true
-        else
-            if inside then
-                field.Arr[field.Y, x] <- true
-let fillField (field : Field) =
-    for y = 0 to Array2D.length1 field.Arr - 1 do
-        do field.Y <- y
-        do fillRow field
 
 let countHoles (rows : bool seq seq) =
     rows
     |> Seq.sumBy (Seq.sumBy boolToInt)
 
-let field = Field.create 600 600
 do
-    readInput "assets/input.txt"
-    |> Seq.iter (digTrench field)
+    let field1 = Field.create (0, 0, 1000, 1000)
+    let instructions = readInput "assets/example.txt" |> Seq.toArray
+    let bounds = getBounds field1 instructions
+    printfn "%A" bounds
+    let field = Field.create bounds
+    instructions |> Seq.iter (digTrench field)
     Field.print field
     let filled = field.Arr |> array2DtoRows |> fillRowsSeq
     filled |> Seq.iter printRowSeq
