@@ -1,9 +1,9 @@
 module MyLib (extract) where
 
-import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
+import GHC.Base ((<|>))
 
 extract :: String -> Int
 extract str =
@@ -18,14 +18,13 @@ stringToDigits str =
 
 digitAtHead :: String -> Maybe Int
 digitAtHead str =
-  digit str `mplus` digitString str
+  digit str <|> digitString str
 
-digit str =
+digit (chr : _) =
   if isDigit chr
     then Just $ digitToInt chr
     else Nothing
-  where
-    chr = head str
+digit [] = Nothing
 
 digitString str =
   findIndex (`isPrefixOf` str) digitStrings
