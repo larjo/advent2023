@@ -20,11 +20,12 @@ digitAtHead :: String -> Maybe Int
 digitAtHead str =
   digit str <|> digitString str
 
-digit (chr : _) =
-  if isDigit chr
-    then Just $ digitToInt chr
-    else Nothing
-digit [] = Nothing
+boolToMaybe :: Bool -> a -> Maybe a
+boolToMaybe True x = Just x
+boolToMaybe False _ = Nothing
+
+digit :: [Char] -> Maybe Int
+digit str = listToMaybe str >>= (\c -> boolToMaybe (isDigit c) (digitToInt c))
 
 digitString str =
   findIndex (`isPrefixOf` str) digitStrings
